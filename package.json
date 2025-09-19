@@ -1,0 +1,29 @@
+{
+  "name": "neurosync",
+  "version": "1.0.0",
+  "description": "AI-powered mental health companion",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@formspree/react": "^3.0.0",
+    "autoprefixer": "^10.4.14",
+    "bcryptjs": "^3.0.2",
+    "groq-sdk": "^0.32.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.15.0",
+    "next": "^15.2.4",
+    "postcss": "^8.4.24",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-toastify": "^11.0.5",
+    "tailwindcss": "^3.3.0"
+  }
+}
