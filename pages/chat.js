@@ -168,20 +168,42 @@ const Chat = () => {
       if (response.ok) {
         const data = await response.json();
         
+        // Check for crisis situation and redirect immediately
+        if (data.crisisDetected || data.isCrisis) {
+          toast.error('Crisis detected. Redirecting to crisis support...', {
+            autoClose: 3000,
+          });
+          setTimeout(() => {
+            router.push('/crisis');
+          }, 2000);
+          setIsLoading(false);
+          return;
+        }
+        
         // Update conversation ID if it's a new conversation
         if (data.conversationId && !currentConversationId) {
           setCurrentConversationId(data.conversationId);
         }
         
-        // Add the bot response
+        // Add the bot response with sentiment
         const botMessage = {
           id: data.botMessage.id,
           type: 'bot',
           text: data.response,
           timestamp: data.botMessage.timestamp,
+          sentiment: data.sentiment,
         };
         
         setMessages(prev => [...prev, botMessage]);
+        
+        // Show sentiment notification
+        if (data.sentiment === 'positive') {
+          toast.success('😊 Positive sentiment detected', { autoClose: 2000 });
+        } else if (data.sentiment === 'negative') {
+          toast.warning('😔 Negative sentiment detected - Remember, you\'re not alone', { autoClose: 3000 });
+        } else {
+          toast.info('😐 Neutral sentiment detected', { autoClose: 2000 });
+        }
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || 'Failed to send message');
@@ -362,6 +384,21 @@ const Chat = () => {
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                   }`}>
                     <p className="text-base">{message.text}</p>
+                    {message.type === 'bot' && message.sentiment && (
+                      <div className="mt-2 flex items-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          message.sentiment === 'positive' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                            : message.sentiment === 'negative'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                            : 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-100'
+                        }`}>
+                          {message.sentiment === 'positive' && '😊 Positive'}
+                          {message.sentiment === 'negative' && '😔 Negative'}
+                          {message.sentiment === 'neutral' && '😐 Neutral'}
+                        </span>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-400 dark:text-gray-300 mt-2">
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </p>

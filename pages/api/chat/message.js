@@ -1,5 +1,5 @@
 import { connectToDatabase } from '../../../lib/mongodb';
-import { generateAIResponse } from '../../../lib/groq';
+import { generateAIResponse, analyzeSentiment } from '../../../lib/groq';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -51,6 +51,9 @@ export default async function handler(req, res) {
       }
     }
 
+    // Analyze sentiment of user message
+    const sentimentAnalysis = await analyzeSentiment(message);
+
     // Generate AI response using Groq
     const aiResponse = await generateAIResponse(message, conversationHistory);
 
@@ -92,6 +95,9 @@ export default async function handler(req, res) {
     res.status(200).json({
       response: aiResponse,
       conversationId: currentConversationId,
+      sentiment: sentimentAnalysis.sentiment,
+      isCrisis: sentimentAnalysis.isCrisis,
+      crisisDetected: sentimentAnalysis.crisisDetected,
       userMessage: {
         id: Date.now(),
         type: 'user',
