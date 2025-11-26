@@ -17,6 +17,20 @@ const Chat = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (!token || !userData) {
+      toast.error('Please login to access chat');
+      router.push('/login');
+      return;
+    }
+    
+    setUser(JSON.parse(userData));
+  }, [router]);
+
   useEffect(() => {
     // Get user data from localStorage
     const userData = localStorage.getItem('user');
