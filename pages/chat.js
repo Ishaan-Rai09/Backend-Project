@@ -32,6 +32,15 @@ const Chat = () => {
         return; // Widget already loaded
       }
 
+      // Get API keys from environment variables
+      const vapiPublicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+      const vapiAssistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+
+      if (!vapiPublicKey || !vapiAssistantId) {
+        console.error('Vapi API keys not found in environment variables');
+        return;
+      }
+
       // Create widget container with maximum priority styling
       const widgetContainer = document.createElement('div');
       widgetContainer.id = 'vapi-widget-persistent';
@@ -39,8 +48,8 @@ const Chat = () => {
       
       // Create the widget element
       const widget = document.createElement('vapi-widget');
-      widget.setAttribute('public-key', 'e982e81f-bb7d-43d0-be88-2baff42a59fb');
-      widget.setAttribute('assistant-id', '123cca3c-ab3d-4e7f-8511-7b8d044823b8');
+      widget.setAttribute('public-key', vapiPublicKey);
+      widget.setAttribute('assistant-id', vapiAssistantId);
       widget.setAttribute('mode', 'voice');
       widget.setAttribute('theme', 'dark');
       widget.setAttribute('base-bg-color', '#000000');

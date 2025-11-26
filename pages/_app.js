@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Head from 'next/head';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Analytics } from "@vercel/analytics/next";
 
 function MyApp({ Component, pageProps }) {
   // This script helps prevent dark mode flickering during page load
@@ -53,6 +54,7 @@ function MyApp({ Component, pageProps }) {
         pauseOnHover
         theme="colored"
       />
+      <Analytics />
     </>
   );
 }
