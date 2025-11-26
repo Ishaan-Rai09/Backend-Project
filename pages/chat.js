@@ -15,6 +15,7 @@ const Chat = () => {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Get user data from localStorage
@@ -22,7 +23,23 @@ const Chat = () => {
     if (userData) {
       setUser(JSON.parse(userData));
     }
-    
+
+    // Load Vapi AI widget script
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
+    script.async = true;
+    script.type = 'text/javascript';
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     // Add some sample messages
     setMessages([
       {
@@ -224,23 +241,62 @@ const Chat = () => {
   };
 
   return (
-    <Layout title="Chat | NeuroSync">
+    <Layout title="Chat | NeuroSync" hideFooter={true}>
       <div className="flex h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900">
-        {/* Sidebar */}
-        <div className="hidden md:flex md:w-72 md:flex-col">
-          <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-800 overflow-y-auto border-r border-gray-200 dark:border-gray-700">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4.31802 6.31802C2.56066 8.07538 2.56066 10.9246 4.31802 12.682L12.0001 20.364L19.682 12.682C21.4393 10.9246 21.4393 8.07538 19.682 6.31802C17.9246 4.56066 15.0754 4.56066 13.318 6.31802L12.0001 7.63609L10.682 6.31802C8.92462 4.56066 6.07538 4.56066 4.31802 6.31802Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="md:hidden fixed top-20 left-4 z-50 p-2 rounded-md bg-primary text-white shadow-lg"
+          aria-label="Toggle menu"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {isMobileSidebarOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
+        {/* Mobile Sidebar Overlay */}
+        {isMobileSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-40 bg-gray-600 bg-opacity-75"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* Sidebar - Desktop and Mobile */}
+        <div className={`${
+          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 fixed md:relative inset-y-0 left-0 z-40 w-72 transition-transform duration-300 ease-in-out md:flex md:flex-col`}>
+          <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-800 overflow-y-auto border-r border-gray-200 dark:border-gray-700 h-full">
+            <div className="flex items-center justify-between flex-shrink-0 px-4">
+              <div className="flex items-center">
+                <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.31802 6.31802C2.56066 8.07538 2.56066 10.9246 4.31802 12.682L12.0001 20.364L19.682 12.682C21.4393 10.9246 21.4393 8.07538 19.682 6.31802C17.9246 4.56066 15.0754 4.56066 13.318 6.31802L12.0001 7.63609L10.682 6.31802C8.92462 4.56066 6.07538 4.56066 4.31802 6.31802Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <h2 className="ml-3 text-2xl font-semibold text-gray-900 dark:text-white">NeuroSync</h2>
               </div>
-              <h2 className="ml-3 text-2xl font-semibold text-gray-900 dark:text-white">NeuroSync</h2>
+              {/* Close button for mobile */}
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             <div className="mt-8 flex-grow flex flex-col">
               <nav className="flex-1 px-4 space-y-3">
                 <button 
-                  onClick={handleNewChat}
+                  onClick={() => {
+                    handleNewChat();
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
                     activeChat === 'new' 
                       ? 'bg-primary text-white' 
@@ -253,7 +309,10 @@ const Chat = () => {
                   New Chat
                 </button>
                 <button 
-                  onClick={handleHistory}
+                  onClick={() => {
+                    handleHistory();
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
                     activeChat === 'history' 
                       ? 'bg-primary text-white' 
@@ -266,7 +325,10 @@ const Chat = () => {
                   History
                 </button>
                 <button 
-                  onClick={handleSettings}
+                  onClick={() => {
+                    handleSettings();
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
                     activeChat === 'settings' 
                       ? 'bg-primary text-white' 
@@ -306,13 +368,13 @@ const Chat = () => {
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden md:ml-0">
           {showHistory ? (
             /* Chat History View */
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Chat History</h2>
-                <p className="text-gray-600 dark:text-gray-300">Select a conversation to continue</p>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">Chat History</h2>
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">Select a conversation to continue</p>
               </div>
               
               {conversations.length === 0 ? (
@@ -358,35 +420,35 @@ const Chat = () => {
             </div>
           ) : (
             /* Chat Messages View */
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-end space-x-3 max-w-2xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+                <div className={`flex items-end space-x-2 md:space-x-3 max-w-[85%] md:max-w-2xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
                   <div className="flex-shrink-0">
                     {message.type === 'bot' ? (
-                      <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                        <svg className="h-4 w-4 md:h-6 md:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       </div>
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                        <span className="text-base font-medium">{user?.name.charAt(0)}</span>
+                      <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                        <span className="text-sm md:text-base font-medium">{user?.name.charAt(0)}</span>
                       </div>
                     )}
                   </div>
-                  <div className={`rounded-2xl px-6 py-4 max-w-lg ${
+                  <div className={`rounded-2xl px-3 py-3 md:px-6 md:py-4 max-w-full ${
                     message.type === 'user'
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                   }`}>
-                    <p className="text-base">{message.text}</p>
+                    <p className="text-sm md:text-base break-words">{message.text}</p>
                     {message.type === 'bot' && message.sentiment && (
                       <div className="mt-2 flex items-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                           message.sentiment === 'positive' 
                             ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
                             : message.sentiment === 'negative'
@@ -430,13 +492,13 @@ const Chat = () => {
 
           {/* Message input - only show when not in history view */}
           {!showHistory && (
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-            <form onSubmit={handleSubmit} className="flex items-center space-x-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-3 md:p-4 bg-white dark:bg-gray-800">
+            <form onSubmit={handleSubmit} className="flex items-center space-x-2 md:space-x-4">
               <button
                 type="button"
-                className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                className="hidden md:flex flex-shrink-0 p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>
               </button>
@@ -447,12 +509,12 @@ const Chat = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message..."
-                  className="block w-full rounded-l-xl border-0 py-3 px-4 text-base text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-gray-700 dark:placeholder-gray-400 resize-none"
+                  className="block w-full rounded-l-xl border-0 py-2 md:py-3 px-3 md:px-4 text-sm md:text-base text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-gray-700 dark:placeholder-gray-400 resize-none"
                 />
                 <div className="flex">
                   <button
                     type="button"
-                    className="flex items-center justify-center px-4 border border-l-0 border-gray-300 dark:border-gray-700 dark:bg-gray-700 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
+                    className="hidden md:flex items-center justify-center px-4 border border-l-0 border-gray-300 dark:border-gray-700 dark:bg-gray-700 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
                   >
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -460,7 +522,7 @@ const Chat = () => {
                   </button>
                   <button
                     type="button"
-                    className="flex items-center justify-center px-4 border border-l-0 border-gray-300 dark:border-gray-700 dark:bg-gray-700 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
+                    className="hidden md:flex items-center justify-center px-4 border border-l-0 border-gray-300 dark:border-gray-700 dark:bg-gray-700 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150"
                   >
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -469,9 +531,9 @@ const Chat = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="flex items-center justify-center px-6 rounded-r-xl bg-primary text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors duration-150"
+                    className="flex items-center justify-center px-4 md:px-6 rounded-r-xl bg-primary text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors duration-150"
                   >
-                    <svg className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                     </svg>
                   </button>
@@ -482,6 +544,37 @@ const Chat = () => {
           )}
         </div>
       </div>
+
+      {/* Vapi AI Voice Widget */}
+      <div 
+        dangerouslySetInnerHTML={{
+          __html: `
+            <vapi-widget
+              public-key="e982e81f-bb7d-43d0-be88-2baff42a59fb"
+              assistant-id="123cca3c-ab3d-4e7f-8511-7b8d044823b8"
+              mode="voice"
+              theme="dark"
+              base-bg-color="#000000"
+              accent-color="#14B8A6"
+              cta-button-color="#000000"
+              cta-button-text-color="#ffffff"
+              border-radius="large"
+              size="full"
+              position="bottom-right"
+              title="NeuroSync AI"
+              start-button-text="Start"
+              end-button-text="End Call"
+              chat-first-message="Hey, How can I help you today?"
+              chat-placeholder="Type your message..."
+              voice-show-transcript="true"
+              consent-required="true"
+              consent-title="Terms and conditions"
+              consent-content="By clicking &quot;Agree,&quot; and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as otherwise described in our Terms of Service."
+              consent-storage-key="vapi_widget_consent"
+            ></vapi-widget>
+          `
+        }}
+      />
     </Layout>
   );
 };

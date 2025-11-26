@@ -5,7 +5,7 @@ import Footer from './Footer';
 import { ThemeProvider, useTheme } from './ThemeContext';
 
 // Inner layout component that uses the theme context
-const LayoutInner = ({ children, title = 'NeuroSync - AI Mental Health Companion' }) => {
+const LayoutInner = ({ children, title = 'NeuroSync - AI Mental Health Companion', hideFooter = false }) => {
   const { darkMode } = useTheme();
   
   return (
@@ -20,17 +20,17 @@ const LayoutInner = ({ children, title = 'NeuroSync - AI Mental Health Companion
       <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
         <Navbar />
         <main className="flex-grow">{children}</main>
-        <Footer />
+        {!hideFooter && <Footer />}
       </div>
     </>
   );
 };
 
 // Outer layout component that provides the theme context
-const Layout = ({ children, title }) => {
+const Layout = ({ children, title, hideFooter }) => {
   return (
     <ThemeProvider>
-      <LayoutInner title={title}>
+      <LayoutInner title={title} hideFooter={hideFooter}>
         {children}
       </LayoutInner>
     </ThemeProvider>
