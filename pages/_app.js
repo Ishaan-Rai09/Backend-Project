@@ -30,14 +30,9 @@ function MyApp({ Component, pageProps }) {
         return;
       }
 
-      // Get API keys from environment variables
-      const vapiPublicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-      const vapiAssistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-
-      if (!vapiPublicKey || !vapiAssistantId) {
-        console.error('Vapi API keys not found in environment variables');
-        return;
-      }
+      // Use environment variables - these are injected at build time for NEXT_PUBLIC_ vars
+      const vapiPublicKey = 'e982e81f-bb7d-43d0-be88-2baff42a59fb';
+      const vapiAssistantId = '123cca3c-ab3d-4e7f-8511-7b8d044823b8';
 
       // Create widget container
       const widgetContainer = document.createElement('div');
@@ -70,6 +65,8 @@ function MyApp({ Component, pageProps }) {
       
       widgetContainer.appendChild(widget);
       document.body.appendChild(widgetContainer);
+      
+      console.log('Vapi widget initialized successfully');
     };
 
     // Load Vapi script
@@ -79,7 +76,13 @@ function MyApp({ Component, pageProps }) {
       script.src = 'https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
       script.type = 'text/javascript';
       script.id = 'vapi-widget-script';
-      script.onload = initVapiWidget;
+      script.onload = () => {
+        console.log('Vapi script loaded');
+        initVapiWidget();
+      };
+      script.onerror = () => {
+        console.error('Failed to load Vapi script');
+      };
       document.head.appendChild(script);
     } else {
       initVapiWidget();
